@@ -38,6 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'uploader',
 ]
+CSRF_TRUSTED_ORIGINS = [
+    "https://upload.myselfiebooth-paris.fr",
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
