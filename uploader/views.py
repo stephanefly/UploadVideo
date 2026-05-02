@@ -2,10 +2,12 @@ from django.shortcuts import render, redirect
 from django.utils import timezone
 
 from .forms import UploadedVideoForm
-from .models import UploadedVideo
 from .services.pcloud import upload_to_pcloud
 from .services.trello import create_trello_card
 
+import csv
+from django.http import HttpResponse
+from .models import UploadedVideo
 
 def upload_view(request):
     # --- GET : afficher formulaire + tableau ---
@@ -53,3 +55,38 @@ def upload_view(request):
 
     # Redirection vers GET (simple et propre)
     return redirect(request.path)
+
+
+
+def export_videos_excel(request):
+    response = HttpResponse(
+        content_type="text/csv; charset=utf-8-sig"
+    )
+    response["Content-Disposition"] = 'attachment; filename="videos_uploads.csv"'
+
+    response.write("\ufeff")
+
+    writer = csv.writer(response, delimiter=";")
+
+    writer.writerow([
+        "Titre",
+        "Uploader",
+        "Nom du fichier",
+        "ID pCloud",
+        "Lien Trello",
+        "Date upload"
+    ])
+
+    videos = UploadedVideo.objects.all().order_by("-created_at")
+
+    for video in videos:
+        writer.writerow([
+            video.title,
+            video.uploader,
+            video.filename,
+            video.pcloud_fileid,
+            video.trello_url,
+            video.created_at.strftime("%d/%m/%Y %H:%M")
+        ])
+
+    return response
